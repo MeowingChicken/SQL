@@ -1,1 +1,1 @@
-SELECT ContactName FROM Customers WHERE CustomerName = 'Around the Horn';
+print("i hate git")
