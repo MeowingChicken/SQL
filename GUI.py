@@ -3,8 +3,7 @@ from tkinter import ttk
 
 root = tk.Tk()
 root.title("Quadruple View GUI")
-
-root.state("zoomed")
+root.geometry("1920x1080")
 
 for r in range(2):
     root.grid_rowconfigure(r, weight=1, uniform="row")
