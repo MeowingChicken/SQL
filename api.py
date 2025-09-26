@@ -53,7 +53,7 @@ def login():
     else:
         return jsonify({"message": "Invalid username or password"}), 401
 
-# 🔥 Always initialize and run server (no __main__ check)
+
 init_db()
 port = 5000
 print(f"🚀 API server running at http://127.0.0.1:{port}")
