@@ -1,61 +1,40 @@
-from flask import Flask, request, jsonify
-import sqlite3
+from flask import Flask, jsonify
 
 app = Flask(__name__)
-DB_FILE = "user_database.db"
 
-def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Username TEXT NOT NULL UNIQUE,
-            Password TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"message": "Username and password required"}), 400
-
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-        c.execute("INSERT INTO users (Username, Password) VALUES (?, ?)", (username, password))
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Registration successful"}), 201
-    except sqlite3.IntegrityError:
-        return jsonify({"message": "Username already exists"}), 400
-
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE Username=? AND Password=?", (username, password))
-    user = c.fetchone()
-    conn.close()
-
-    if user:
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        return jsonify({"message": "Invalid username or password"}), 401
+# Current robot movement states
+movement_state = {
+    "forward": False,
+    "backward": False,
+    "left": False,
+    "right": False
+}
 
 
-init_db()
-port = 5000
-print(f"🚀 API server running at http://127.0.0.1:{port}")
-app.run(debug=True, port=port)
+@app.route("/move/<direction>", methods=["POST"])
+def change_direction(direction):
+    """
+    Toggle a movement direction state.
+
+    Parameters:
+        direction (str): The direction to toggle (forward/backward/left/right)
+
+    Returns:
+        JSON: Updated state for the requested direction
+    """
+    if direction in movement_state:
+        movement_state[direction] = not movement_state[direction]
+        return jsonify({direction: movement_state[direction]})
+    return jsonify({"error": "Invalid direction"}), 400
+
+
+@app.route("/state", methods=["GET"])
+def get_state():
+    """
+    Get the current state of all movement directions.
+
+    Returns:
+        JSON: Dictionary of current movement states
+    """
+    return jsonify(movement_state)
 
